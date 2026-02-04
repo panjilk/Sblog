@@ -1,5 +1,5 @@
 <script setup>
-import { reactive, ref } from 'vue'
+import { reactive, ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { login } from '@/api/user'
@@ -7,6 +7,7 @@ import { login } from '@/api/user'
 const router = useRouter()
 const formRef = ref()
 const loading = ref(false)
+const rememberMe = ref(false)
 
 const loginForm = reactive({
   username: '',
@@ -24,6 +25,16 @@ const rules = {
   ]
 }
 
+// 页面加载时检查是否有保存的用户名
+onMounted(() => {
+  const savedUsername = localStorage.getItem('rememberedUsername')
+  if (savedUsername) {
+    loginForm.username = savedUsername
+    loginForm.password = localStorage.getItem('rememberedpwd')
+    rememberMe.value = true
+  }
+})
+
 const handleLogin = async () => {
   await formRef.value.validate(async (valid) => {
     if (valid) {
@@ -33,15 +44,30 @@ const handleLogin = async () => {
           username: loginForm.username,
           password: loginForm.password
         })
+        console.log("登录响应:", res)
+        console.log("响应类型:", typeof res)
 
-        // 假设后端返回格式: { code: 200, data: { token: 'xxx' }, message: 'success' }
+        // 处理不同的响应码
         if (res.code === 200) {
           localStorage.setItem('token', res.data.token)
+
+          // 如果勾选了记住密码，保存用户名
+          if (rememberMe.value) {
+            localStorage.setItem('rememberedUsername', loginForm.username)
+             localStorage.setItem('rememberedpwd', loginForm.password)
+          } else {
+            localStorage.removeItem('rememberedUsername')
+          }
+
           ElMessage.success('登录成功')
-          router.push('/index')
+          router.push('/admin')
+        } else {
+          // 非 200 状态码，显示错误消息
+          ElMessage.error(res.message || '登录失败')
         }
       } catch (error) {
         console.error('登录失败:', error)
+        ElMessage.error(error.response?.data?.message || '登录失败，请检查网络连接')
       } finally {
         loading.value = false
       }
@@ -70,6 +96,10 @@ const goToRegister = () => {
 
         <el-form-item label="密码" prop="password">
           <el-input v-model="loginForm.password" type="password" placeholder="请输入密码" show-password />
+        </el-form-item>
+
+        <el-form-item>
+          <el-checkbox v-model="rememberMe">记住密码</el-checkbox>
         </el-form-item>
 
         <el-form-item>

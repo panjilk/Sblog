@@ -17,11 +17,17 @@ export default defineConfig({
   },
   server: {
     port: 3000,
+    headers: {
+      'Cache-Control': 'no-store'
+    },
     proxy: {
+      '/admin': {
+        target: 'http://localhost:8080',
+        changeOrigin: true
+      },
       '/api': {
-        target: 'http://localhost:8081',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, '')
+        target: 'http://localhost:8080',
+        changeOrigin: true
       }
     }
   }

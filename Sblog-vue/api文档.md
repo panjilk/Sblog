@@ -10,7 +10,136 @@
 
 ---
 
-## 一、数据统计模块
+## 一、用户认证模块
+
+### 1.1 用户登录
+
+**接口**: `POST /admin/users/login`
+
+**请求参数**:
+```json
+{
+  "username": "用户名",
+  "password": "密码"
+}
+```
+
+**字段说明**:
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| username | string | 是 | 用户名 |
+| password | string | 是 | 密码 |
+
+**返回示例**:
+```json
+{
+  "code": 200,
+  "data": {
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "userInfo": {
+      "id": 1,
+      "username": "admin",
+      "email": "admin@example.com",
+      "role": "admin",
+      "avatar": "头像URL"
+    }
+  },
+  "message": "登录成功"
+}
+```
+
+### 1.2 用户注册
+
+**接口**: `POST /admin/users/register`
+
+**请求参数**:
+```json
+{
+  "username": "用户名",
+  "password": "密码",
+  "email": "邮箱"
+}
+```
+
+**字段说明**:
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| username | string | 是 | 用户名（需唯一） |
+| password | string | 是 | 密码 |
+| email | string | 是 | 邮箱 |
+
+**返回示例**:
+```json
+{
+  "code": 200,
+  "data": {
+    "id": 2,
+    "username": "newuser",
+    "email": "newuser@example.com",
+    "role": "user"
+  },
+  "message": "注册成功"
+}
+```
+
+### 1.3 获取用户信息
+
+**接口**: `GET /admin/users/info`
+
+**请求头**: 需要 token
+
+**返回示例**:
+```json
+{
+  "code": 200,
+  "data": {
+    "id": 1,
+    "username": "admin",
+    "email": "admin@example.com",
+    "role": "admin",
+    "avatar": "头像URL",
+    "createdAt": "2024-01-01 10:00:00"
+  }
+}
+```
+
+### 1.4 退出登录
+
+**接口**: `POST /admin/users/logout`
+
+**请求头**: 需要 token
+
+**返回示例**:
+```json
+{
+  "code": 200,
+  "message": "退出成功"
+}
+```
+
+### 1.5 检查用户名是否存在
+
+**接口**: `GET /admin/users/check-username`
+
+**请求参数**:
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| username | string | 是 | 待检查的用户名 |
+
+**返回示例**:
+```json
+{
+  "code": 200,
+  "data": {
+    "exists": false,
+    "username": "newuser"
+  }
+}
+```
+
+---
+
+## 二、数据统计模块
 
 ### 1.1 获取仪表盘数据
 
@@ -37,9 +166,9 @@
 123123
 ---
 
-## 二、文章管理模块
+## 三、文章管理模块
 
-### 2.1 获取文章列表
+### 3.1 获取文章列表
 
 **接口**: `GET /admin/articles`
 
@@ -77,7 +206,7 @@
 }
 ```
 
-### 2.2 获取文章详情
+### 3.2 获取文章详情
 
 **接口**: `GET /admin/articles/:id`
 
@@ -101,7 +230,7 @@
 }
 ```
 
-### 2.3 创建文章
+### 3.3 创建文章
 
 **接口**: `POST /admin/articles`
 
@@ -131,21 +260,21 @@
 | status | string | 是 | 状态：published/draft |
 | allowComment | boolean | 否 | 是否允许评论 |
 
-### 2.4 更新文章
+### 3.4 更新文章
 
 **接口**: `PUT /admin/articles/:id`
 
 **请求参数**: 同创建文章
 
-### 2.5 删除文章
+### 3.5 删除文章
 
 **接口**: `DELETE /admin/articles/:id`
 
 ---
 
-## 三、分类管理模块
+## 四、分类管理模块
 
-### 3.1 获取分类列表
+### 4.1 获取分类列表
 
 **接口**: `GET /admin/categories`
 
@@ -165,7 +294,7 @@
 }
 ```
 
-### 3.2 创建分类
+### 4.2 创建分类
 
 **接口**: `POST /admin/categories`
 
@@ -177,21 +306,21 @@
 }
 ```
 
-### 3.3 更新分类
+### 4.3 更新分类
 
 **接口**: `PUT /admin/categories/:id`
 
 **请求参数**: 同创建分类
 
-### 3.4 删除分类
+### 4.4 删除分类
 
 **接口**: `DELETE /admin/categories/:id`
 
 ---
 
-## 四、标签管理模块
+## 五、标签管理模块
 
-### 4.1 获取标签列表
+### 5.1 获取标签列表
 
 **接口**: `GET /admin/tags`
 
@@ -210,7 +339,7 @@
 }
 ```
 
-### 4.2 创建标签
+### 5.2 创建标签
 
 **接口**: `POST /admin/tags`
 
@@ -221,19 +350,19 @@
 }
 ```
 
-### 4.3 更新标签
+### 5.3 更新标签
 
 **接口**: `PUT /admin/tags/:id`
 
-### 4.4 删除标签
+### 5.4 删除标签
 
 **接口**: `DELETE /admin/tags/:id`
 
 ---
 
-## 五、评论管理模块
+## 六、评论管理模块
 
-### 5.1 获取评论列表
+### 6.1 获取评论列表
 
 **接口**: `GET /admin/comments`
 
@@ -268,7 +397,7 @@
 }
 ```
 
-### 5.2 回复评论
+### 6.2 回复评论
 
 **接口**: `POST /admin/comments/:id/reply`
 
@@ -279,15 +408,15 @@
 }
 ```
 
-### 5.3 删除评论
+### 6.3 删除评论
 
 **接口**: `DELETE /admin/comments/:id`
 
 ---
 
-## 六、留言管理模块
+## 七、留言管理模块
 
-### 6.1 获取留言列表
+### 7.1 获取留言列表
 
 **接口**: `GET /admin/messages`
 
@@ -318,7 +447,7 @@
 }
 ```
 
-### 6.2 回复留言
+### 7.2 回复留言
 
 **接口**: `POST /admin/messages/:id/reply`
 
@@ -329,15 +458,15 @@
 }
 ```
 
-### 6.3 删除留言
+### 7.3 删除留言
 
 **接口**: `DELETE /admin/messages/:id`
 
 ---
 
-## 七、用户管理模块
+## 八、用户管理模块
 
-### 7.1 获取用户列表
+### 8.1 获取用户列表
 
 **接口**: `GET /admin/users`
 
@@ -369,7 +498,7 @@
 }
 ```
 
-### 7.2 创建用户
+### 8.2 创建用户
 
 **接口**: `POST /admin/users`
 
@@ -385,7 +514,7 @@
 
 **角色说明**: admin、editor、user
 
-### 7.3 更新用户
+### 8.3 更新用户
 
 **接口**: `PUT /admin/users/:id`
 
@@ -398,11 +527,11 @@
 }
 ```
 
-### 7.4 删除用户
+### 8.4 删除用户
 
 **接口**: `DELETE /admin/users/:id`
 
-### 7.5 获取角色列表
+### 8.5 获取角色列表
 
 **接口**: `GET /admin/roles`
 
@@ -420,9 +549,9 @@
 
 ---
 
-## 八、系统设置模块
+## 九、系统设置模块
 
-### 8.1 获取基本设置
+### 9.1 获取基本设置
 
 **接口**: `GET /admin/settings`
 
@@ -442,7 +571,7 @@
 }
 ```
 
-### 8.2 更新基本设置
+### 9.2 更新基本设置
 
 **接口**: `PUT /admin/settings`
 
@@ -460,9 +589,9 @@
 
 ---
 
-## 九、安全维护模块
+## 十、安全维护模块
 
-### 9.1 修改密码
+### 10.1 修改密码
 
 **接口**: `PUT /admin/password`
 

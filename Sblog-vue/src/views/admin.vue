@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { logout } from '@/api/user'
 import {
   Document,
   Folder,
@@ -11,8 +14,32 @@ import {
   Message
 } from '@element-plus/icons-vue'
 
+const router = useRouter()
 const activeMenu = ref('dashboard')
 const isCollapse = ref(false)
+
+// 退出登录
+const handleLogout = async () => {
+  try {
+    await ElMessageBox.confirm('确定要退出登录吗？', '提示', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
+
+    await logout()
+    localStorage.removeItem('token')
+    localStorage.removeItem('rememberedUsername')
+    localStorage.removeItem('rememberedpwd')
+    ElMessage.success('已退出登录')
+    router.push('/login')
+  } catch (error) {
+    // 用户取消或网络错误
+    if (error !== 'cancel') {
+      console.error('退出登录失败:', error)
+    }
+  }
+}
 
 const menuList = [
   {
@@ -23,15 +50,16 @@ const menuList = [
   {
     title: '文章管理',
     icon: Document,
+    index: 'article',
     children: [
       { title: '所有文章', index: 'article-list' },
-      { title: '写文章', index: 'article-create' },
-      { title: '草稿箱', index: 'article-draft' }
+      { title: '写文章', index: 'article-create' }
     ]
   },
   {
     title: '分类标签',
     icon: Folder,
+    index: 'category-tag',
     children: [
       { title: '分类管理', index: 'category' },
       { title: '标签管理', index: 'tag' }
@@ -50,6 +78,7 @@ const menuList = [
   {
     title: '用户管理',
     icon: User,
+    index: 'user',
     children: [
       { title: '用户列表', index: 'user-list' },
       { title: '权限管理', index: 'permission' }
@@ -137,7 +166,7 @@ const menuList = [
             <template #dropdown>
               <el-dropdown-menu>
                 <el-dropdown-item>个人中心</el-dropdown-item>
-                <el-dropdown-item divided>退出登录</el-dropdown-item>
+                <el-dropdown-item divided @click="handleLogout">退出登录</el-dropdown-item>
               </el-dropdown-menu>
             </template>
           </el-dropdown>
