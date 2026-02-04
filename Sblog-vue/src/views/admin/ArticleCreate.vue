@@ -1,0 +1,232 @@
+<script setup>
+import { ref, onMounted, computed } from 'vue'
+import { ElMessage } from 'element-plus'
+import request from '@/utils/axios'
+import { useRouter, useRoute } from 'vue-router'
+
+const router = useRouter()
+const route = useRoute()
+const loading = ref(false)
+const saveLoading = ref(false)
+const isEdit = computed(() => !!route.params.id)
+
+const articleForm = ref({
+  title: '',
+  content: '',
+  summary: '',
+  cover: '',
+  categoryId: null,
+  tagIds: [],
+  status: 'draft',
+  allowComment: true
+})
+
+const categories = ref([])
+const allTags = ref([])
+const formRef = ref()
+
+const rules = {
+  title: [{ required: true, message: '请输入文章标题', trigger: 'blur' }],
+  content: [{ required: true, message: '请输入文章内容', trigger: 'blur' }],
+  categoryId: [{ required: true, message: '请选择分类', trigger: 'change' }]
+}
+
+const fetchCategories = async () => {
+  try {
+    const res = await request.get('/admin/categories')
+    categories.value = res.data || res
+    console.log('分类列表原始响应:', res)
+    console.log('分类列表数据:', JSON.stringify(categories.value, null, 2))
+  } catch (error) {
+    console.error('获取分类失败:', error)
+  }
+}
+
+const fetchTags = async () => {
+  try {
+    const res = await request.get('/admin/tags')
+    allTags.value = res.data || res
+    console.log('标签列表原始响应:', res)
+    console.log('标签列表数据:', JSON.stringify(allTags.value, null, 2))
+  } catch (error) {
+    console.error('获取标签失败:', error)
+  }
+}
+
+const handleSaveDraft = async () => {
+  articleForm.value.status = 'draft'
+  await handleSubmit()
+}
+
+const handlePublish = async () => {
+  articleForm.value.status = 'published'
+  await handleSubmit()
+}
+
+const handleSubmit = async () => {
+  await formRef.value.validate(async (valid) => {
+    if (valid) {
+      saveLoading.value = true
+      try {
+        console.log('提交的文章数据:', JSON.stringify(articleForm.value, null, 2))
+        console.log('提交的标签:', JSON.stringify(articleForm.value.tagIds, null, 2))
+        if (isEdit.value) {
+          await request.put(`/admin/articles/${route.params.id}`, articleForm.value)
+          ElMessage.success(articleForm.value.status === 'draft' ? '保存草稿成功' : '更新成功')
+        } else {
+          await request.post('/admin/articles', articleForm.value)
+          ElMessage.success(articleForm.value.status === 'draft' ? '保存草稿成功' : '发布成功')
+        }
+        router.push('/admin/article-list')
+      } catch (error) {
+        console.error('保存失败:', error)
+      } finally {
+        saveLoading.value = false
+      }
+    }
+  })
+}
+
+const fetchArticle = async () => {
+  if (!route.params.id) return
+  loading.value = true
+  try {
+    const res = await request.get(`/admin/articles/${route.params.id}`)
+    const data = res.data || res
+    console.log('文章详情数据:', data)
+    console.log('标签数据:', data.tags)
+    articleForm.value = {
+      title: data.title || '',
+      content: data.content || '',
+      summary: data.summary || '',
+      cover: data.cover || '',
+      categoryId: data.categoryId || null,
+      // 如果返回的是对象数组，提取 ID；如果已经是 ID 数组则直接使用
+      tagIds: data.tags?.map(t => typeof t === 'object' ? t.id : t).filter(Boolean) || [],
+      status: data.status || 'draft',
+      allowComment: data.allowComment ?? true
+    }
+    console.log('处理后的标签:', articleForm.value.tagIds)
+  } catch (error) {
+    console.error('获取文章详情失败:', error)
+    ElMessage.error('获取文章详情失败')
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(() => {
+  fetchCategories()
+  fetchTags()
+  if (isEdit.value) {
+    fetchArticle()
+  }
+})
+</script>
+
+<template>
+  <div class="article-create">
+    <div class="page-header">
+      <h2>{{ isEdit ? '编辑文章' : '写文章' }}</h2>
+      <div class="header-actions">
+        <el-button @click="router.push('/admin/article-list')">取消</el-button>
+        <el-button type="info" :loading="saveLoading" @click="handleSaveDraft">
+          保存草稿
+        </el-button>
+        <el-button type="primary" :loading="saveLoading" @click="handlePublish">
+          发布
+        </el-button>
+      </div>
+    </div>
+
+    <el-card class="form-card">
+      <el-form ref="formRef" :model="articleForm" :rules="rules" label-width="100px">
+        <el-form-item label="文章标题" prop="title">
+          <el-input
+            v-model="articleForm.title"
+            placeholder="请输入文章标题"
+            maxlength="100"
+            show-word-limit
+          />
+        </el-form-item>
+
+        <el-form-item label="文章分类" prop="categoryId">
+          <el-select v-model="articleForm.categoryId" placeholder="请选择分类">
+            <el-option
+              v-for="cat in categories"
+              :key="cat.id"
+              :label="cat.name"
+              :value="cat.id"
+            />
+          </el-select>
+        </el-form-item>
+
+        <el-form-item label="文章标签">
+          <el-select v-model="articleForm.tagIds" multiple placeholder="请选择标签">
+            <el-option
+              v-for="tag in allTags"
+              :key="tag.id"
+              :label="tag.name"
+              :value="tag.id"
+            />
+          </el-select>
+        </el-form-item>
+
+        <el-form-item label="文章摘要">
+          <el-input
+            v-model="articleForm.summary"
+            type="textarea"
+            :rows="3"
+            placeholder="请输入文章摘要"
+            maxlength="200"
+            show-word-limit
+          />
+        </el-form-item>
+
+        <el-form-item label="封面图片">
+          <el-input v-model="articleForm.cover" placeholder="请输入封面图片URL" />
+        </el-form-item>
+
+        <el-form-item label="文章内容" prop="content">
+          <el-input
+            v-model="articleForm.content"
+            type="textarea"
+            :rows="15"
+            placeholder="请输入文章内容，支持 Markdown"
+          />
+        </el-form-item>
+
+        <el-form-item label="允许评论">
+          <el-switch v-model="articleForm.allowComment" />
+        </el-form-item>
+      </el-form>
+    </el-card>
+  </div>
+</template>
+
+<style scoped lang="scss">
+.article-create {
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+
+    h2 {
+      font-size: 24px;
+      font-weight: 600;
+      margin: 0;
+      color: #333;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 10px;
+    }
+  }
+
+  .form-card {
+    max-width: 900px;
+  }
+}
+</style>
