@@ -93,20 +93,16 @@ const fetchArticle = async () => {
   try {
     const res = await request.get(`/admin/articles/${route.params.id}`)
     const data = res.data || res
-    console.log('文章详情数据:', data)
-    console.log('标签数据:', data.tags)
     articleForm.value = {
       title: data.title || '',
       content: data.content || '',
       summary: data.summary || '',
       cover: data.cover || '',
       categoryId: data.categoryId || null,
-      // 如果返回的是对象数组，提取 ID；如果已经是 ID 数组则直接使用
-      tagIds: data.tags?.map(t => typeof t === 'object' ? t.id : t).filter(Boolean) || [],
+      tagIds: data.tagIds || [],
       status: data.status || 'draft',
       allowComment: data.allowComment ?? true
     }
-    console.log('处理后的标签:', articleForm.value.tagIds)
   } catch (error) {
     console.error('获取文章详情失败:', error)
     ElMessage.error('获取文章详情失败')

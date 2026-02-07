@@ -30,7 +30,7 @@ request.interceptors.response.use(
     return res.data
   },
   error => {
-    const { response } = error
+    const { response, config } = error
     let message = '请求失败'
 
     if (response) {
@@ -41,8 +41,12 @@ request.interceptors.response.use(
         case 401:
           message = '未授权，请重新登录'
           // 401 自动跳转登录页
-          localStorage.removeItem('token')
-          window.location.href = '/login'
+          // 防止重复跳转：如果当前已经在登录页，不再跳转
+          const currentHash = window.location.hash
+          if (currentHash !== '#/login' && currentHash !== '#/register') {
+            localStorage.removeItem('token')
+            window.location.href = window.location.origin + window.location.pathname + '#/login'
+          }
           break
         case 403:
           message = '拒绝访问'
@@ -62,8 +66,10 @@ request.interceptors.response.use(
       message = '网络连接失败'
     }
 
-    // 统一错误提示
-    ElMessage.error(message)
+    // 统一错误提示（避免在登录页重复提示）
+    if (window.location.hash !== '#/login') {
+      ElMessage.error(message)
+    }
 
     return Promise.reject(error)
   }

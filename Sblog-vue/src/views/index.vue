@@ -20,11 +20,11 @@
     <div class="content">
       <div class="content-1">
         <h1 class="section-title">关于我</h1>
-        <p class="description">大家好！我是一名正在学习网页开发的新手。我对前端技术充满热情，喜欢通过代码创造美观实用的网页界面。在学习的过程中，我不断挑战自己，希望成为一名优秀的开发者。</p>
+        <p class="description">大家好！我是一名正在学习JAVA开发的新手。我对各种技术充满热情，喜欢通过代码创造美观实用的网页界面。在学习的过程中，我不断挑战自己，希望成为一名优秀的开发者。</p>
         <h2 class="subsection-title">兴趣爱好</h2>
         <div class="hobbies">
           <span class="hobby-tag">💻 编程</span>
-          <span class="hobby-tag">🎮 CS:GO</span>
+          <span class="hobby-tag">🎮 CF:GO</span>
           <span class="hobby-tag">🏎️ QQ飞车</span>
           <span class="hobby-tag">📚 阅读</span>
         </div>

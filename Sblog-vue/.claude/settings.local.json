@@ -6,7 +6,8 @@
       "mcp__zread__search_doc",
       "mcp__zread__read_file",
       "Bash(npm install:*)",
-      "Bash(npm uninstall:*)"
+      "Bash(npm uninstall:*)",
+      "Bash(dir \"c:\\\\Users\\\\Panjilk\\\\Desktop\\\\项目\\\\Sblog\")"
     ]
   }
 }
