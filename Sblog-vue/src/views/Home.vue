@@ -918,4 +918,50 @@ onMounted(() => {
     transform: translateX(-50%) translateY(12px);
   }
 }
+
+// 深色模式样式
+[data-theme='dark'] .home {
+  background: #1a1a1a;
+
+  .hero {
+    background: linear-gradient(135deg, #4c3d7a 0%, #5a4a8a 100%);
+  }
+
+  .section-title,
+  .hero-title,
+  .hero-subtitle {
+    color: #e0e0e0;
+  }
+
+  .featured-section .featured-card {
+    background: #252530;
+
+    .featured-overlay {
+      background: linear-gradient(to top, rgba(0, 0, 0, 0.9), transparent);
+    }
+  }
+
+  .main-section .section-header .filters .filter-btn {
+    background: #2a2a3a;
+    border-color: #3a3a4a;
+    color: #e0e0e0;
+
+    &:hover {
+      border-color: #a78bfa;
+      color: #a78bfa;
+    }
+
+    &.active {
+      background: linear-gradient(135deg, #a78bfa, #818cf8);
+    }
+  }
+
+  .article-list .article-card {
+    background: #252530;
+  }
+
+  .sidebar .sidebar-section {
+    background: #252530;
+  }
+}
 </style>

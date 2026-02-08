@@ -8,10 +8,10 @@
       <div class="avatar-wrapper">
         <img src="/avator.jpg" alt="头像" class="avatar">
       </div>
-      <h1 class="name">苏毅凯</h1>
-      <p class="bio">热爱编程，追求卓越的帅哥</p>
+      <h1 class="name">Panjilk</h1>
+      <p class="bio">热爱编程，追求卓越</p>
       <div class="social-links">
-        <a href="#" class="social-link">GitHub</a>
+        <a href="https://github.com/panjilk" class="social-link">GitHub</a>
         <a href="#" class="social-link">博客</a>
         <a href="#" class="social-link">联系我</a>
       </div>
@@ -20,7 +20,7 @@
     <div class="content">
       <div class="content-1">
         <h1 class="section-title">关于我</h1>
-        <p class="description">大家好！我是一名正在学习JAVA开发的新手。我对各种技术充满热情，喜欢通过代码创造美观实用的网页界面。在学习的过程中，我不断挑战自己，希望成为一名优秀的开发者。</p>
+        <p class="description">大家好！我是一名练习时长两年半的实习生。我喜欢唱，跳，rap，篮球。</p>
         <h2 class="subsection-title">兴趣爱好</h2>
         <div class="hobbies">
           <span class="hobby-tag">💻 编程</span>
@@ -34,27 +34,31 @@
         <h1 class="section-title">技能专长</h1>
         <div class="skills">
           <div class="skill-item">
+            <span class="skill-name">Vibe Coding</span>
+            <div class="skill-bar"><div class="skill-fill" style="width: 99%;"></div></div>
+          </div>
+          <div class="skill-item">
             <span class="skill-name">JAVA</span>
-            <div class="skill-bar"><div class="skill-fill" style="width: 85%;"></div></div>
+            <div class="skill-bar"><div class="skill-fill" style="width: 5%;"></div></div>
           </div>
           <div class="skill-item">
             <span class="skill-name">Springboot</span>
-            <div class="skill-bar"><div class="skill-fill" style="width: 75%;"></div></div>
+            <div class="skill-bar"><div class="skill-fill" style="width: 5%;"></div></div>
           </div>
           <div class="skill-item">
             <span class="skill-name">Vue.js</span>
-            <div class="skill-bar"><div class="skill-fill" style="width: 70%;"></div></div>
+            <div class="skill-bar"><div class="skill-fill" style="width: 5%;"></div></div>
           </div>
           <div class="skill-item">
             <span class="skill-name">Django</span>
-            <div class="skill-bar"><div class="skill-fill" style="width: 70%;"></div></div>
+            <div class="skill-bar"><div class="skill-fill" style="width: 5%;"></div></div>
           </div>
         </div>
       </div>
     </div>
 
     <div class="footer">
-      <p>© 2026 苏毅凯 · 用心创造</p>
+      <p>© 2026 Sblog · 用心创造</p>
     </div>
   </div>
 </template>
@@ -313,6 +317,54 @@
 @keyframes fillBar {
   from {
     width: 0;
+  }
+}
+
+// 深色模式样式
+[data-theme='dark'] .container {
+  background: linear-gradient(135deg, #3a3054 0%, #4a3a6a 100%);
+}
+
+[data-theme='dark'] .title {
+  background: rgba(40, 40, 50, 0.95);
+}
+
+[data-theme='dark'] .name {
+  background: linear-gradient(135deg, #a78bfa, #818cf8);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+[data-theme='dark'] .bio {
+  color: #b0b0b0;
+}
+
+[data-theme='dark'] .content-1 {
+  .subsection-title {
+    color: #a78bfa;
+  }
+
+  .hobby-tag {
+    background: linear-gradient(135deg, #3a3a4a, #2a2a3a);
+    color: #e0e0e0;
+    border-color: #3a3a4a;
+  }
+}
+
+[data-theme='dark'] .content-2 {
+  .subsection-title {
+    color: #a78bfa;
+  }
+
+  .skill-item {
+    .skill-name {
+      color: #e0e0e0;
+    }
+
+    .skill-bar {
+      background: #3a3a4a;
+    }
   }
 }
 </style>

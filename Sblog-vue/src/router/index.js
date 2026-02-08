@@ -32,6 +32,10 @@ const router = createRouter({
           component: () => import('@/views/Search.vue')
         },
         {
+          path: 'friend-links',
+          component: () => import('@/views/FriendLinks.vue')
+        },
+        {
           path: 'about',
           redirect: '/index-intro'
         }
@@ -89,6 +93,10 @@ const router = createRouter({
         {
           path: 'comment',
           component: () => import('@/views/admin/Comment.vue')
+        },
+        {
+          path: 'friend-links',
+          component: () => import('@/views/admin/FriendLinkManage.vue')
         },
         {
           path: 'message',
