@@ -1,6 +1,8 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { ElMessage } from 'element-plus'
+import { MdEditor } from 'md-editor-v3'
+import 'md-editor-v3/lib/style.css'
 import request from '@/utils/axios'
 import { useRouter, useRoute } from 'vue-router'
 
@@ -18,12 +20,17 @@ const articleForm = ref({
   categoryId: null,
   tagIds: [],
   status: 'draft',
-  allowComment: true
+  allowComment: true,
+  views: 0
 })
 
 const categories = ref([])
 const allTags = ref([])
 const formRef = ref()
+const originalViews = ref(0)
+
+// 配置编辑器主题
+const editorTheme = ref('light')
 
 const rules = {
   title: [{ required: true, message: '请输入文章标题', trigger: 'blur' }],
@@ -31,12 +38,69 @@ const rules = {
   categoryId: [{ required: true, message: '请选择分类', trigger: 'change' }]
 }
 
+// 图片上传处理
+const handleUploadImg = async (files, callback) => {
+  const res = await Promise.all(
+    files.map((file) => {
+      return new Promise((rev, rej) => {
+        const formData = new FormData()
+        formData.append('file', file)
+
+        request.post('/admin/upload/image', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        }).then((res) => {
+          const data = res.data || res
+          rev({
+            url: data.url,
+            alt: file.name,
+            title: file.name
+          })
+        }).catch((error) => {
+          rej(error)
+        })
+      })
+    })
+  )
+
+  callback(res)
+}
+
+// 编辑器工具栏扩展
+const toolbars = [
+  'bold',
+  'underline',
+  'italic',
+  'strikeThrough',
+  '-',
+  'title',
+  'sub',
+  'sup',
+  'quote',
+  'unorderedList',
+  'orderedList',
+  'task',
+  '-',
+  'codeRow',
+  'code',
+  'link',
+  'image',
+  'table',
+  '-',
+  'revoke',
+  'next',
+  'save',
+  '=',
+  'pageFullscreen',
+  'fullscreen',
+  'preview',
+  'htmlPreview',
+  'catalog'
+]
+
 const fetchCategories = async () => {
   try {
     const res = await request.get('/admin/categories')
     categories.value = res.data || res
-    console.log('分类列表原始响应:', res)
-    console.log('分类列表数据:', JSON.stringify(categories.value, null, 2))
   } catch (error) {
     console.error('获取分类失败:', error)
   }
@@ -46,8 +110,6 @@ const fetchTags = async () => {
   try {
     const res = await request.get('/admin/tags')
     allTags.value = res.data || res
-    console.log('标签列表原始响应:', res)
-    console.log('标签列表数据:', JSON.stringify(allTags.value, null, 2))
   } catch (error) {
     console.error('获取标签失败:', error)
   }
@@ -68,10 +130,14 @@ const handleSubmit = async () => {
     if (valid) {
       saveLoading.value = true
       try {
-        console.log('提交的文章数据:', JSON.stringify(articleForm.value, null, 2))
-        console.log('提交的标签:', JSON.stringify(articleForm.value.tagIds, null, 2))
         if (isEdit.value) {
           await request.put(`/admin/articles/${route.params.id}`, articleForm.value)
+          // 如果浏览量有变化，更新浏览量
+          if (articleForm.value.views !== originalViews.value) {
+            await request.put(`/admin/articles/${route.params.id}/views`, {
+              views: articleForm.value.views
+            })
+          }
           ElMessage.success(articleForm.value.status === 'draft' ? '保存草稿成功' : '更新成功')
         } else {
           await request.post('/admin/articles', articleForm.value)
@@ -80,6 +146,7 @@ const handleSubmit = async () => {
         router.push('/admin/article-list')
       } catch (error) {
         console.error('保存失败:', error)
+        ElMessage.error('保存失败: ' + (error.message || '未知错误'))
       } finally {
         saveLoading.value = false
       }
@@ -101,8 +168,10 @@ const fetchArticle = async () => {
       categoryId: data.categoryId || null,
       tagIds: data.tagIds || [],
       status: data.status || 'draft',
-      allowComment: data.allowComment ?? true
+      allowComment: data.allowComment ?? true,
+      views: data.views || 0
     }
+    originalViews.value = data.views || 0
   } catch (error) {
     console.error('获取文章详情失败:', error)
     ElMessage.error('获取文章详情失败')
@@ -135,7 +204,7 @@ onMounted(() => {
       </div>
     </div>
 
-    <el-card class="form-card">
+    <el-card class="form-card" v-loading="loading">
       <el-form ref="formRef" :model="articleForm" :rules="rules" label-width="100px">
         <el-form-item label="文章标题" prop="title">
           <el-input
@@ -184,16 +253,31 @@ onMounted(() => {
         </el-form-item>
 
         <el-form-item label="文章内容" prop="content">
-          <el-input
+          <MdEditor
             v-model="articleForm.content"
-            type="textarea"
-            :rows="15"
-            placeholder="请输入文章内容，支持 Markdown"
+            :theme="editorTheme"
+            :toolbars="toolbars"
+            @onUploadImg="handleUploadImg"
+            placeholder="请输入文章内容，支持 Markdown..."
+            language="zh-CN"
           />
         </el-form-item>
 
         <el-form-item label="允许评论">
           <el-switch v-model="articleForm.allowComment" />
+        </el-form-item>
+
+        <el-form-item label="浏览量" v-if="isEdit">
+          <el-input-number
+            v-model="articleForm.views"
+            :min="0"
+            :step="1"
+            placeholder="请输入浏览量"
+            style="width: 200px"
+          />
+          <span style="margin-left: 10px; color: #999; font-size: 12px">
+            修改浏览量会影响文章的统计数据
+          </span>
         </el-form-item>
       </el-form>
     </el-card>
@@ -222,7 +306,12 @@ onMounted(() => {
   }
 
   .form-card {
-    max-width: 900px;
+    max-width: 1000px;
+  }
+
+  :deep(.md-editor) {
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   }
 }
 </style>

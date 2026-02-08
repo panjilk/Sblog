@@ -1,8 +1,10 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useTheme } from '@/composables/useTheme'
 
 const router = useRouter()
+const { theme, toggleTheme } = useTheme()
 
 const categories = ref([])
 const tags = ref([])
@@ -66,6 +68,10 @@ onUnmounted(() => {
             <span class="link-icon">🏷️</span>
             <span class="link-text">标签</span>
           </router-link>
+          <router-link to="/friend-links" class="nav-link">
+            <span class="link-icon">🔗</span>
+            <span class="link-text">友链</span>
+          </router-link>
           <a @click="goToAbout" class="nav-link">
             <span class="link-icon">👤</span>
             <span class="link-text">关于</span>
@@ -74,6 +80,7 @@ onUnmounted(() => {
 
         <div class="header-actions">
           <div class="search-box">
+
             <input
               v-model="searchKeyword"
               type="text"
@@ -87,8 +94,11 @@ onUnmounted(() => {
               </svg>
             </button>
           </div>
+          <button @click="toggleTheme" class="theme-toggle" :title="theme === 'light' ? '切换到深色模式' : '切换到浅色模式'">
+            {{ theme === 'light' ? '🌙' : '☀️' }}
+          </button>
           <router-link to="/login" class="btn-login">
-            <span>🔑</span> 登录
+            <span>🔑</span> 后台登录
           </router-link>
         </div>
       </div>
@@ -114,6 +124,7 @@ onUnmounted(() => {
               <li><router-link to="/index">🏠 首页</router-link></li>
               <li><router-link to="/categories">📚 分类</router-link></li>
               <li><router-link to="/tags">🏷️ 标签</router-link></li>
+              <li><router-link to="/friend-links">🔗 友链</router-link></li>
               <li><a @click="goToAbout">👤 关于</a></li>
             </ul>
           </div>
@@ -325,6 +336,25 @@ onUnmounted(() => {
           color: #667eea;
           transform: scale(1.1);
         }
+      }
+    }
+
+    .theme-toggle {
+      width: 40px;
+      height: 40px;
+      border: none;
+      background: #f5f5f5;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+
+      &:hover {
+        background: #667eea;
+        transform: rotate(20deg) scale(1.1);
       }
     }
 
@@ -600,5 +630,101 @@ onUnmounted(() => {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+// 深色模式样式
+.front-layout[data-theme='dark'] {
+  background: #1a1a1a;
+
+  .header {
+    background: rgba(30, 30, 40, 0.95);
+
+    &.is-scrolled {
+      background: rgba(30, 30, 40, 0.98);
+    }
+
+    .logo h1 {
+      background: linear-gradient(135deg, #a78bfa, #818cf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .nav-link {
+      color: #e0e0e0;
+
+      &:hover {
+        color: #a78bfa;
+      }
+
+      &.router-link-active {
+        color: #a78bfa;
+      }
+    }
+
+    .search-box {
+      background: #2a2a3a;
+
+      input {
+        background: transparent;
+        color: #e0e0e0;
+
+        &::placeholder {
+          color: #999;
+        }
+      }
+
+      &:focus-within {
+        background: #2a2a3a;
+      }
+    }
+  }
+
+  .main-content {
+    background: transparent;
+  }
+
+  .footer {
+    background: linear-gradient(135deg, #1a1a2e, #16213e);
+
+    .footer-section {
+      h3 {
+        color: #fff;
+      }
+
+      p {
+        color: #bdc3c7;
+      }
+
+      ul li a {
+        color: #bdc3c7;
+
+        &:hover {
+          color: #a78bfa;
+        }
+      }
+    }
+
+    .footer-bottom p {
+      color: #95a5a6;
+    }
+  }
+}
+
+[data-theme='dark'] {
+  .theme-toggle {
+    background: #3a3a4a;
+
+    &:hover {
+      background: #a78bfa;
+    }
+  }
+}
+</style>
+
+<style lang="scss">
+// 全局暗黑模式样式（非 scoped）
+[data-theme='dark'] body {
+  background: #1a1a1a;
+  transition: background 0.3s ease;
 }
 </style>

@@ -1,0 +1,138 @@
+/* 全局暗黑模式样式 */
+[data-theme='dark'] {
+  color-scheme: dark;
+  background: #1a1a1a;
+  color: #e0e0e0;
+}
+
+/* 确保 body 元素继承正确的颜色 */
+[data-theme='dark'] body {
+  background: #1a1a1a;
+  color: #e0e0e0;
+}
+
+/* 标题颜色 */
+[data-theme='dark'] h1,
+[data-theme='dark'] h2,
+[data-theme='dark'] h3,
+[data-theme='dark'] h4,
+[data-theme='dark'] h5,
+[data-theme='dark'] h6 {
+  color: #e0e0e0;
+}
+
+/* 段落和文本颜色 */
+[data-theme='dark'] p,
+[data-theme='dark'] span,
+[data-theme='dark'] div:not([class*='gradient']):not([class*='overlay']) {
+  color: #b0b0b0;
+}
+
+/* 列表颜色 */
+[data-theme='dark'] li,
+[data-theme='dark'] td,
+[data-theme='dark'] th {
+  color: #b0b0b0;
+}
+
+/* 链接颜色 */
+[data-theme='dark'] a {
+  color: #a78bfa;
+}
+
+/* 输入框样式 */
+[data-theme='dark'] input,
+[data-theme='dark'] textarea {
+  background: #2a2a3a;
+  border-color: #3a3a4a;
+  color: #e0e0e0;
+}
+
+[data-theme='dark'] input::placeholder,
+[data-theme='dark'] textarea::placeholder {
+  color: #999;
+}
+
+/* 按钮样式 */
+[data-theme='dark'] button {
+  background: #252530;
+  color: #e0e0e0;
+}
+
+/* Element Plus 卡片样式 */
+[data-theme='dark'] .el-card {
+  background: #252530;
+  border-color: #3a3a4a;
+}
+
+[data-theme='dark'] .el-card__body {
+  color: #b0b0b0;
+}
+
+/* md-editor 预览样式 */
+[data-theme='dark'] .md-preview {
+  color: #e0e0e0;
+}
+
+[data-theme='dark'] .md-preview h1,
+[data-theme='dark'] .md-preview h2,
+[data-theme='dark'] .md-preview h3,
+[data-theme='dark'] .md-preview h4,
+[data-theme='dark'] .md-preview h5,
+[data-theme='dark'] .md-preview h6 {
+  color: #e0e0e0;
+}
+
+[data-theme='dark'] .md-preview p,
+[data-theme='dark'] .md-preview span,
+[data-theme='dark'] .md-preview li {
+  color: #b0b0b0;
+}
+
+[data-theme='dark'] .md-preview a {
+  color: #a78bfa;
+}
+
+[data-theme='dark'] .md-preview code,
+[data-theme='dark'] .md-preview pre {
+  background: #2a2a3a;
+  color: #e0e0e0;
+}
+
+[data-theme='dark'] .md-preview blockquote {
+  border-left-color: #a78bfa;
+  color: #999;
+}
+
+[data-theme='dark'] .md-preview table {
+  border-color: #3a3a4a;
+}
+
+[data-theme='dark'] .md-preview td,
+[data-theme='dark'] .md-preview th {
+  border-color: #3a3a4a;
+  color: #b0b0b0;
+}
+
+[data-theme='dark'] .md-preview img {
+  background: transparent;
+}
+
+/* TOC 侧边栏样式 */
+[data-theme='dark'] .toc-sidebar {
+  background: #252530;
+}
+
+[data-theme='dark'] .toc-sidebar h3 {
+  color: #e0e0e0;
+}
+
+[data-theme='dark'] .toc-item {
+  color: #b0b0b0;
+}
+
+[data-theme='dark'] .toc-item:hover,
+[data-theme='dark'] .toc-item.active {
+  color: #a78bfa;
+  background: #2a2a3a;
+}

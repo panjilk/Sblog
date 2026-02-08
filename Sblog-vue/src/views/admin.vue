@@ -11,7 +11,8 @@ import {
   Setting,
   DataAnalysis,
   Lock,
-  Message
+  Message,
+  Link
 } from '@element-plus/icons-vue'
 
 const router = useRouter()
@@ -69,6 +70,11 @@ const menuList = [
     title: '评论管理',
     icon: ChatDotSquare,
     index: 'comment'
+  },
+  {
+    title: '友情链接',
+    icon: Link,
+    index: 'friend-links'
   },
   {
     title: '留言管理',

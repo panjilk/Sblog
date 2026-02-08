@@ -12,6 +12,7 @@
     "axios": "^1.13.4",
     "element-plus": "^2.13.2",
     "marked": "^17.0.1",
+    "md-editor-v3": "^6.3.1",
     "vue": "^3.5.27",
     "vue-router": "^4.6.4"
   },

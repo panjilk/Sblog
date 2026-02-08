@@ -269,4 +269,42 @@ onMounted(() => {
     transform: translateY(0);
   }
 }
+
+// 深色模式样式
+[data-theme='dark'] .categories-page {
+  background: #1a1a1a;
+
+  .page-title {
+    background: linear-gradient(135deg, #a78bfa, #818cf8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .categories-grid .category-card {
+    background: #252530;
+
+    .category-icon {
+      background: linear-gradient(135deg, #3a3a4a, #2a2a3a);
+      color: #a78bfa;
+    }
+
+    .category-name {
+      color: #e0e0e0;
+    }
+
+    .category-desc {
+      color: #b0b0b0;
+    }
+
+    .category-count {
+      background: #3a3a4a;
+      color: #999;
+    }
+
+    &:hover .category-count {
+      background: linear-gradient(135deg, #a78bfa, #818cf8);
+    }
+  }
+}
 </style>
