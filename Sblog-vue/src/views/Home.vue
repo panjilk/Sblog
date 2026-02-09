@@ -154,7 +154,14 @@ onMounted(() => {
           :style="{ animationDelay: `${index * 0.1}s` }"
           @click="goToArticle(article.id)"
         >
-          <div class="featured-image" :style="{ backgroundImage: article.cover ? `url(${article.cover})` : 'linear-gradient(135deg, #667eea, #764ba2)' }">
+          <div class="featured-image">
+            <img
+              v-if="article.cover"
+              v-lazy="article.cover"
+              :alt="article.title"
+              class="featured-img"
+            />
+            <div v-else class="featured-placeholder"></div>
             <div class="featured-overlay">
               <h3>{{ article.title }}</h3>
               <p>{{ article.summary }}</p>
@@ -206,7 +213,14 @@ onMounted(() => {
             :style="{ animationDelay: `${index * 0.08}s` }"
             @click="goToArticle(article.id)"
           >
-            <div class="article-cover" :style="{ backgroundImage: article.cover ? `url(${article.cover})` : 'linear-gradient(135deg, #667eea, #764ba2)' }">
+            <div class="article-cover">
+              <img
+                v-if="article.cover"
+                v-lazy="article.cover"
+                :alt="article.title"
+                class="article-cover-img"
+              />
+              <div v-else class="article-cover-placeholder"></div>
               <div class="cover-overlay"></div>
             </div>
             <div class="article-content">
@@ -437,6 +451,10 @@ onMounted(() => {
         &:hover {
           transform: translateY(-8px) scale(1.02);
           box-shadow: 0 12px 30px rgba(102, 126, 234, 0.25);
+
+          .featured-img {
+            transform: scale(1.1);
+          }
         }
 
         .featured-image {
@@ -444,6 +462,19 @@ onMounted(() => {
           background-size: cover;
           background-position: center;
           position: relative;
+          overflow: hidden;
+
+          .featured-img,
+          .featured-placeholder {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+          }
+
+          .featured-placeholder {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+          }
 
           .featured-overlay {
             position: absolute;
@@ -592,6 +623,10 @@ onMounted(() => {
           transform: translateY(-5px) scale(1.01);
           box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
 
+          .article-cover-img {
+            transform: scale(1.1);
+          }
+
           .cover-overlay {
             opacity: 1;
           }
@@ -603,6 +638,22 @@ onMounted(() => {
           background-size: cover;
           background-position: center;
           position: relative;
+          overflow: hidden;
+
+          .article-cover-img,
+          .article-cover-placeholder {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+            top: 0;
+            left: 0;
+            transition: transform 0.5s ease;
+          }
+
+          .article-cover-placeholder {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+          }
 
           .cover-overlay {
             position: absolute;

@@ -1,8 +1,10 @@
 package com.sblogjava.service;
 
 import com.sblogjava.Dto.DashboardDto;
+import com.sblogjava.Dto.DashboardChartData;
 import com.sblogjava.dao.Article;
 import com.sblogjava.dao.ArticleRepository;
+import com.sblogjava.dao.Category;
 import com.sblogjava.dao.CommentRepository;
 import com.sblogjava.dao.Message;
 import com.sblogjava.dao.MessageRepository;
@@ -13,7 +15,9 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -87,5 +91,77 @@ public class DashboardServiceImpl implements DashboardService {
         dashboard.setRecentArticles(recentArticleDtos);
 
         return dashboard;
+    }
+
+    @Override
+    public DashboardChartData getChartData(int days) {
+        DashboardChartData chartData = new DashboardChartData();
+
+        // 1. 获取趋势数据
+        List<DashboardChartData.TrendData> trendDataList = new ArrayList<>();
+        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("MM/dd");
+
+        for (int i = days - 1; i >= 0; i--) {
+            LocalDate date = LocalDate.now().minusDays(i);
+            LocalDateTime startOfDay = date.atStartOfDay();
+            LocalDateTime endOfDay = date.plusDays(1).atStartOfDay();
+
+            DashboardChartData.TrendData trendData = new DashboardChartData.TrendData();
+            trendData.setDate(date.format(dateFormatter));
+
+            // 当天发布的文章数量
+            long articleCount = articleRepository.findAll().stream()
+                    .filter(a -> a.getCreatedAt() != null &&
+                            !a.getCreatedAt().isBefore(startOfDay) &&
+                            a.getCreatedAt().isBefore(endOfDay) &&
+                            a.getStatus() == Article.ArticleStatus.PUBLISHED)
+                    .count();
+            trendData.setArticleCount(articleCount);
+
+            // 当天的评论数量（需要统计当天创建的评论）
+            // 注意：这里使用所有文章的评论总和作为简化实现
+            long commentCount = articleRepository.findAll().stream()
+                    .filter(a -> a.getCreatedAt() != null &&
+                            !a.getCreatedAt().isBefore(startOfDay) &&
+                            a.getCreatedAt().isBefore(endOfDay))
+                    .mapToLong(Article::getComments)
+                    .sum();
+            trendData.setCommentCount(commentCount);
+
+            // 当天的访问量（当天创建/更新的文章的总浏览量）
+            long viewCount = articleRepository.findAll().stream()
+                    .filter(a -> (a.getCreatedAt() != null &&
+                            !a.getCreatedAt().isBefore(startOfDay) &&
+                            a.getCreatedAt().isBefore(endOfDay)) ||
+                           (a.getUpdatedAt() != null &&
+                            !a.getUpdatedAt().isBefore(startOfDay) &&
+                            a.getUpdatedAt().isBefore(endOfDay)))
+                    .mapToLong(Article::getViews)
+                    .sum();
+            trendData.setViewCount(viewCount);
+
+            trendDataList.add(trendData);
+        }
+
+        chartData.setTrendData(trendDataList);
+
+        // 2. 获取分类统计数据
+        List<Article> allArticles = articleRepository.findAll();
+        Map<Category, List<Article>> articlesByCategory = allArticles.stream()
+                .filter(a -> a.getCategory() != null && a.getStatus() == Article.ArticleStatus.PUBLISHED)
+                .collect(Collectors.groupingBy(Article::getCategory));
+
+        List<DashboardChartData.CategoryStat> categoryStats = articlesByCategory.entrySet().stream()
+                .map(entry -> {
+                    DashboardChartData.CategoryStat stat = new DashboardChartData.CategoryStat();
+                    stat.setName(entry.getKey().getName());
+                    stat.setCount((long) entry.getValue().size());
+                    return stat;
+                })
+                .collect(Collectors.toList());
+
+        chartData.setCategoryStats(categoryStats);
+
+        return chartData;
     }
 }

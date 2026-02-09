@@ -12,8 +12,8 @@
       <p class="bio">热爱编程，追求卓越</p>
       <div class="social-links">
         <a href="https://github.com/panjilk" class="social-link">GitHub</a>
-        <a href="#" class="social-link">博客</a>
-        <a href="#" class="social-link">联系我</a>
+        <a href="/index" class="social-link">博客</a>
+        <a href="/index" class="social-link">联系我</a>
       </div>
     </div>
 

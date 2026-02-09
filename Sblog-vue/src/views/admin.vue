@@ -12,7 +12,9 @@ import {
   DataAnalysis,
   Lock,
   Message,
-  Link
+  Link,
+  Monitor,
+  View
 } from '@element-plus/icons-vue'
 
 const router = useRouter()
@@ -89,6 +91,16 @@ const menuList = [
       { title: '用户列表', index: 'user-list' },
       { title: '权限管理', index: 'permission' }
     ]
+  },
+  {
+    title: '访问日志',
+    icon: View,
+    index: 'visit-log'
+  },
+  {
+    title: '系统监控',
+    icon: Monitor,
+    index: 'system-monitor'
   },
   {
     title: '系统设置',

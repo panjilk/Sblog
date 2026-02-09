@@ -1,9 +1,11 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted, nextTick } from 'vue'
 import request from '@/utils/axios'
 import { Document, ChatDotSquare, User, View, Message, TrendCharts } from '@element-plus/icons-vue'
+import * as echarts from 'echarts'
 
 const loading = ref(false)
+const chartLoading = ref(false)
 const dashboardData = ref({
   articleCount: 0,
   draftCount: 0,
@@ -16,20 +18,314 @@ const dashboardData = ref({
   recentComments: []
 })
 
+// 图表相关
+const trendChartRef = ref(null)
+const categoryChartRef = ref(null)
+const visitChartRef = ref(null)
+let trendChart = null
+let categoryChart = null
+let visitChart = null
+
+// 图表数据
+const trendData = ref({
+  dates: [],
+  articles: [],
+  comments: []
+})
+
+const categoryData = ref([])
+
+const visitData = ref({
+  dates: [],
+  views: []
+})
+
 const fetchDashboardData = async () => {
   loading.value = true
   try {
     const res = await request.get('/admin/dashboard')
-    dashboardData.value = res.data || res
+
+    // 确保数据结构正确
+    const data = res.data || res
+
+    dashboardData.value = {
+      articleCount: data.articleCount || 0,
+      draftCount: data.draftCount || 0,
+      commentCount: data.commentCount || 0,
+      messageCount: data.messageCount || 0,
+      userCount: data.userCount || 0,
+      viewCount: data.viewCount || 0,
+      todayViews: data.todayViews || 0,
+      recentArticles: data.recentArticles || [],
+      recentComments: data.recentComments || []
+    }
+
+    console.log('Dashboard data:', dashboardData.value)
+
+    // 获取图表数据
+    fetchChartData()
   } catch (error) {
-    console.error('获取仪表盘数据失败:', error)
   } finally {
     loading.value = false
   }
 }
 
+// 初始化所有图表
+const initCharts = () => {
+  initTrendChart()
+  initCategoryChart()
+  initVisitChart()
+}
+
+// 初始化趋势图表
+const initTrendChart = () => {
+  if (!trendChartRef.value) return
+
+  trendChart = echarts.init(trendChartRef.value, null, {
+    renderer: 'canvas',
+    useDirtyRect: true
+  })
+
+  const option = {
+    tooltip: {
+      trigger: 'axis',
+      axisPointer: {
+        type: 'cross'
+      }
+    },
+    legend: {
+      data: ['文章发布', '评论数量'],
+      top: 10
+    },
+    grid: {
+      left: '3%',
+      right: '4%',
+      bottom: '3%',
+      containLabel: true
+    },
+    xAxis: {
+      type: 'category',
+      boundaryGap: false,
+      data: trendData.value.dates
+    },
+    yAxis: {
+      type: 'value'
+    },
+    series: [
+      {
+        name: '文章发布',
+        type: 'line',
+        smooth: true,
+        data: trendData.value.articles,
+        itemStyle: {
+          color: '#667eea'
+        },
+        areaStyle: {
+          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+            { offset: 0, color: 'rgba(102, 126, 234, 0.3)' },
+            { offset: 1, color: 'rgba(102, 126, 234, 0.05)' }
+          ])
+        }
+      },
+      {
+        name: '评论数量',
+        type: 'line',
+        smooth: true,
+        data: trendData.value.comments,
+        itemStyle: {
+          color: '#764ba2'
+        },
+        areaStyle: {
+          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+            { offset: 0, color: 'rgba(118, 75, 162, 0.3)' },
+            { offset: 1, color: 'rgba(118, 75, 162, 0.05)' }
+          ])
+        }
+      }
+    ]
+  }
+
+  trendChart.setOption(option)
+}
+
+// 初始化分类图表
+const initCategoryChart = () => {
+  if (!categoryChartRef.value) return
+
+  categoryChart = echarts.init(categoryChartRef.value, null, {
+    renderer: 'canvas',
+    useDirtyRect: true
+  })
+
+  const option = {
+    tooltip: {
+      trigger: 'item',
+      formatter: '{a} <br/>{b}: {c} ({d}%)'
+    },
+    legend: {
+      orient: 'vertical',
+      left: 10,
+      top: 'center'
+    },
+    series: [
+      {
+        name: '文章分类',
+        type: 'pie',
+        radius: ['40%', '70%'],
+        avoidLabelOverlap: false,
+        itemStyle: {
+          borderRadius: 10,
+          borderColor: '#fff',
+          borderWidth: 2
+        },
+        label: {
+          show: false,
+          position: 'center'
+        },
+        emphasis: {
+          label: {
+            show: true,
+            fontSize: 20,
+            fontWeight: 'bold'
+          }
+        },
+        labelLine: {
+          show: false
+        },
+        data: categoryData.value
+      }
+    ]
+  }
+
+  categoryChart.setOption(option)
+}
+
+// 初始化访问量图表
+const initVisitChart = () => {
+  if (!visitChartRef.value) return
+
+  visitChart = echarts.init(visitChartRef.value, null, {
+    renderer: 'canvas',
+    useDirtyRect: true
+  })
+
+  const option = {
+    tooltip: {
+      trigger: 'axis',
+      axisPointer: {
+        type: 'shadow'
+      }
+    },
+    grid: {
+      left: '3%',
+      right: '4%',
+      bottom: '3%',
+      containLabel: true
+    },
+    xAxis: {
+      type: 'category',
+      data: visitData.value.dates,
+      axisTick: {
+        alignWithLabel: true
+      }
+    },
+    yAxis: {
+      type: 'value'
+    },
+    series: [
+      {
+        name: '访问量',
+        type: 'bar',
+        barWidth: '60%',
+        data: visitData.value.views,
+        itemStyle: {
+          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+            { offset: 0, color: '#667eea' },
+            { offset: 1, color: '#764ba2' }
+          ]),
+          borderRadius: [8, 8, 0, 0]
+        }
+      }
+    ]
+  }
+
+  visitChart.setOption(option)
+}
+
+// 窗口大小改变时重新调整图表大小
+const handleResize = () => {
+  trendChart?.resize()
+  categoryChart?.resize()
+  visitChart?.resize()
+}
+
+// 格式化日期
+const formatDate = (dateStr) => {
+  if (!dateStr) return '-'
+  const date = new Date(dateStr)
+  return date.toLocaleString('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+}
+
+// 获取图表数据
+const fetchChartData = async () => {
+  chartLoading.value = true
+  try {
+    const res = await request.get('/admin/dashboard/chart', {
+      params: { days: 7 }
+    })
+
+    const data = res.data || res
+
+    // 处理趋势数据
+    if (data.trendData && data.trendData.length > 0) {
+      trendData.value = {
+        dates: data.trendData.map(item => item.date),
+        articles: data.trendData.map(item => item.articleCount || 0),
+        comments: data.trendData.map(item => item.commentCount || 0)
+      }
+
+      visitData.value = {
+        dates: data.trendData.map(item => item.date),
+        views: data.trendData.map(item => item.viewCount || 0)
+      }
+    }
+
+    // 处理分类数据
+    if (data.categoryStats && data.categoryStats.length > 0) {
+      categoryData.value = data.categoryStats.map(item => ({
+        value: item.count,
+        name: item.name
+      }))
+    }
+
+    console.log('Chart data:', { trendData: trendData.value, categoryData: categoryData.value, visitData: visitData.value })
+
+    // 初始化图表
+    await nextTick()
+    initCharts()
+  } catch (error) {
+    console.error('获取图表数据失败:', error)
+  } finally {
+    chartLoading.value = false
+  }
+}
+
 onMounted(() => {
   fetchDashboardData()
+  window.addEventListener('resize', handleResize)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', handleResize)
+  trendChart?.dispose()
+  categoryChart?.dispose()
+  visitChart?.dispose()
 })
 </script>
 
@@ -120,6 +416,43 @@ onMounted(() => {
       </el-col>
     </el-row>
 
+    <!-- 图表区域 -->
+    <el-row :gutter="20" class="chart-row">
+      <el-col :xs="24" :sm="24" :md="16" :lg="16">
+        <el-card class="chart-card">
+          <template #header>
+            <div class="card-header">
+              <span>📈 内容发布趋势</span>
+            </div>
+          </template>
+          <div ref="trendChartRef" class="chart-container"></div>
+        </el-card>
+      </el-col>
+      <el-col :xs="24" :sm="24" :md="8" :lg="8">
+        <el-card class="chart-card">
+          <template #header>
+            <div class="card-header">
+              <span>📊 分类统计</span>
+            </div>
+          </template>
+          <div ref="categoryChartRef" class="chart-container"></div>
+        </el-card>
+      </el-col>
+    </el-row>
+
+    <el-row :gutter="20" class="chart-row">
+      <el-col :xs="24" :sm="24" :md="24" :lg="24">
+        <el-card class="chart-card">
+          <template #header>
+            <div class="card-header">
+              <span>👁️ 访问量统计</span>
+            </div>
+          </template>
+          <div ref="visitChartRef" class="chart-container-large"></div>
+        </el-card>
+      </el-col>
+    </el-row>
+
     <el-row :gutter="20" class="content-row">
       <el-col :xs="24" :sm="24" :md="12" :lg="12">
         <el-card class="recent-card">
@@ -129,9 +462,13 @@ onMounted(() => {
             </div>
           </template>
           <el-table :data="dashboardData.recentArticles" style="width: 100%">
-            <el-table-column prop="title" label="标题" />
+            <el-table-column prop="title" label="标题" show-overflow-tooltip />
             <el-table-column prop="views" label="浏览" width="80" />
-            <el-table-column prop="date" label="日期" width="120" />
+            <el-table-column label="日期" width="120">
+              <template #default="{ row }">
+                {{ formatDate(row.createdAt) }}
+              </template>
+            </el-table-column>
           </el-table>
         </el-card>
       </el-col>
@@ -145,7 +482,11 @@ onMounted(() => {
           <el-table :data="dashboardData.recentComments" style="width: 100%">
             <el-table-column prop="content" label="内容" show-overflow-tooltip />
             <el-table-column prop="author" label="作者" width="100" />
-            <el-table-column prop="date" label="日期" width="120" />
+            <el-table-column label="日期" width="160">
+              <template #default="{ row }">
+                {{ formatDate(row.createdAt) }}
+              </template>
+            </el-table-column>
           </el-table>
         </el-card>
       </el-col>
@@ -163,6 +504,10 @@ onMounted(() => {
   }
 
   .stats-row {
+    margin-bottom: 20px;
+  }
+
+  .chart-row {
     margin-bottom: 20px;
   }
 
@@ -207,6 +552,25 @@ onMounted(() => {
         font-size: 14px;
         color: #999;
       }
+    }
+  }
+
+  .chart-card {
+    height: 100%;
+
+    .card-header {
+      font-weight: 600;
+      color: #333;
+    }
+
+    .chart-container {
+      height: 300px;
+      width: 100%;
+    }
+
+    .chart-container-large {
+      height: 250px;
+      width: 100%;
     }
   }
 

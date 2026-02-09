@@ -173,6 +173,12 @@ const fetchComments = async () => {
 
 // 提交评论
 const submitComment = async () => {
+  // 检查文章是否允许评论
+  if (article.value && article.value.allowComment === false) {
+    ElMessage.warning('该文章已关闭评论功能')
+    return
+  }
+
   if (!commentForm.value.content.trim()) {
     ElMessage.warning('请输入评论内容')
     return
@@ -217,6 +223,105 @@ const formatDate = (dateStr) => {
   })
 }
 
+// 复制代码功能
+const copyCode = async (code, button) => {
+  try {
+    await navigator.clipboard.writeText(code)
+    ElMessage.success('代码已复制到剪贴板')
+
+    // 更新按钮状态
+    const originalHTML = button.innerHTML
+    button.innerHTML = '<i class="icon">✓</i>'
+    button.classList.add('copied')
+
+    setTimeout(() => {
+      button.innerHTML = originalHTML
+      button.classList.remove('copied')
+    }, 2000)
+  } catch (err) {
+    console.error('复制失败:', err)
+    ElMessage.error('复制失败，请手动复制')
+  }
+}
+
+// 为所有代码块添加复制按钮
+const addCopyButtons = (retryCount = 0) => {
+  nextTick(() => {
+    // 尝试多种选择器
+    let codeBlocks = document.querySelectorAll('.md-preview pre')
+
+    // 如果没找到，尝试其他选择器
+    if (codeBlocks.length === 0) {
+      codeBlocks = document.querySelectorAll('.article-content pre')
+    }
+
+    // 如果还是没找到，尝试找到所有包含 code 的 pre
+    if (codeBlocks.length === 0) {
+      const allPres = document.querySelectorAll('pre')
+      codeBlocks = Array.from(allPres).filter(pre => pre.querySelector('code'))
+    }
+
+    console.log('Found code blocks:', codeBlocks.length, 'Retry:', retryCount)
+
+    if (codeBlocks.length === 0 && retryCount < 10) {
+      // 如果没有找到代码块，等待更长时间后重试
+      setTimeout(() => addCopyButtons(retryCount + 1), 300)
+      return
+    }
+
+    let buttonsAdded = 0
+    codeBlocks.forEach((block) => {
+      // 检查是否已经添加过复制按钮
+      if (block.querySelector('.copy-button')) {
+        buttonsAdded++
+        return
+      }
+
+      const codeElement = block.querySelector('code')
+      if (!codeElement) return
+
+      const code = codeElement.textContent
+
+      // 创建复制按钮
+      const copyButton = document.createElement('button')
+      copyButton.className = 'copy-button'
+      copyButton.innerHTML = '<i class="icon">📋</i> 复制'
+      copyButton.setAttribute('aria-label', '复制代码')
+      copyButton.type = 'button'
+      copyButton.style.cssText = `
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: #fff;
+        padding: 6px 14px;
+        border-radius: 8px;
+        font-size: 13px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        transition: all 0.3s ease;
+        backdrop-filter: blur(10px);
+        z-index: 10;
+      `
+
+      // 绑定点击事件
+      copyButton.addEventListener('click', () => {
+        copyCode(code, copyButton)
+      })
+
+      // 将按钮添加到代码块
+      block.style.position = 'relative'
+      block.appendChild(copyButton)
+      buttonsAdded++
+    })
+
+    console.log('Copy buttons added:', buttonsAdded)
+  })
+}
+
 onMounted(() => {
   fetchArticle()
   fetchComments()
@@ -227,6 +332,8 @@ onMounted(() => {
 
   setTimeout(() => {
     contentLoaded.value = true
+    // 为代码块添加复制按钮
+    addCopyButtons()
   }, 400)
 
   window.addEventListener('scroll', handleScroll, { passive: true })
@@ -261,7 +368,8 @@ onUnmounted(() => {
       </header>
 
       <!-- 文章封面 -->
-      <div v-if="article.cover" class="article-cover" :style="{ backgroundImage: `url(${article.cover})` }">
+      <div v-if="article.cover" class="article-cover">
+        <img v-lazy="article.cover" :alt="article.title" class="article-cover-img" />
         <div class="cover-overlay"></div>
       </div>
 
@@ -280,8 +388,14 @@ onUnmounted(() => {
       <div class="comments-section">
         <h2 class="comments-title">💬 评论 ({{ comments.length }})</h2>
 
+        <!-- 文章已关闭评论提示 -->
+        <div v-if="article.allowComment === false" class="comment-disabled">
+          <div class="disabled-icon">🔒</div>
+          <p>该文章已关闭评论功能</p>
+        </div>
+
         <!-- 评论表单 -->
-        <div class="comment-form">
+        <div v-else class="comment-form">
           <h3>✍️ 发表评论</h3>
           <div class="form-group">
             <input
@@ -470,6 +584,13 @@ onUnmounted(() => {
     animation: fadeInScale 0.8s ease 0.2s forwards;
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
 
+    .article-cover-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.3s ease;
+    }
+
     .cover-overlay {
       position: absolute;
       top: 0;
@@ -562,11 +683,50 @@ onUnmounted(() => {
       overflow-x: auto;
       margin: 25px 0;
       box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      position: relative;
 
       code {
         background: transparent;
         color: inherit;
         padding: 0;
+      }
+
+      // 复制按钮样式
+      .copy-button {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: #fff;
+        padding: 6px 14px;
+        border-radius: 8px;
+        font-size: 13px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        transition: all 0.3s ease;
+        backdrop-filter: blur(10px);
+
+        .icon {
+          font-size: 14px;
+        }
+
+        &:hover {
+          background: rgba(102, 126, 234, 0.8);
+          border-color: rgba(102, 126, 234, 1);
+          transform: translateY(-2px);
+        }
+
+        &:active {
+          transform: translateY(0);
+        }
+
+        &.copied {
+          background: rgba(16, 185, 129, 0.8);
+          border-color: rgba(16, 185, 129, 1);
+        }
       }
     }
 
@@ -682,6 +842,26 @@ onUnmounted(() => {
       font-weight: 600;
       margin-bottom: 35px;
       color: #333;
+    }
+
+    .comment-disabled {
+      text-align: center;
+      padding: 40px 20px;
+      background: linear-gradient(135deg, #f9f9ff, #f5f5ff);
+      border-radius: 16px;
+      margin-bottom: 35px;
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.1);
+
+      .disabled-icon {
+        font-size: 48px;
+        margin-bottom: 15px;
+      }
+
+      p {
+        font-size: 16px;
+        color: #999;
+        margin: 0;
+      }
     }
 
     .comment-form {
@@ -1127,6 +1307,22 @@ onUnmounted(() => {
   pre {
     background: #1a1a2e;
     color: #f8f8f2;
+    position: relative;
+
+    .copy-button {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.15);
+
+      &:hover {
+        background: rgba(167, 139, 250, 0.7);
+        border-color: rgba(167, 139, 250, 1);
+      }
+
+      &.copied {
+        background: rgba(16, 185, 129, 0.7);
+        border-color: rgba(16, 185, 129, 1);
+      }
+    }
   }
 
   blockquote {
@@ -1169,6 +1365,14 @@ onUnmounted(() => {
 
   .comments-title {
     color: #e0e0e0;
+  }
+
+  .comment-disabled {
+    background: linear-gradient(135deg, #2a2a3a, #252530);
+
+    p {
+      color: #999;
+    }
   }
 
   .comment-form {

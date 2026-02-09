@@ -21,10 +21,6 @@ export default defineConfig({
       'Cache-Control': 'no-store'
     },
     proxy: {
-      '/admin': {
-        target: 'http://localhost:8080',
-        changeOrigin: true
-      },
       '/api': {
         target: 'http://localhost:8080',
         changeOrigin: true
